@@ -57,7 +57,7 @@ const gameReducer = (state: Game, action: GameAction): Game =>
         const newSquare = { ...square, isVisible: true };
         const newBoard = state.board.set(y, row.set(x, newSquare));
 
-        if (checkIfPlayerWon(newBoard)) {
+        if (didPlayerWin(newBoard)) {
           return {
             ...state,
             gameState: GameState.PlayerWon,
@@ -93,7 +93,7 @@ const gameReducer = (state: Game, action: GameAction): Game =>
       if (!square.isVisible) {
         const newSquare: BoardSquareT = { ...square, hasFlag: !square.hasFlag };
         const newBoard = state.board.set(y, row.set(x, newSquare));
-        const newGameState = checkIfPlayerWon(newBoard)
+        const newGameState = didPlayerWin(newBoard)
           ? GameState.PlayerWon
           : state.gameState;
 
@@ -181,7 +181,7 @@ export function countMinesAround(position: Vector2, board: GameBoard): number {
     .reduce((acc: number, num) => acc + num, 0);
 }
 
-export function checkIfPlayerWon(board: GameBoard): boolean {
+export function didPlayerWin(board: GameBoard): boolean {
   return board
     .flatMap((row) => row)
     .every((square) => {
