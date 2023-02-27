@@ -5,7 +5,7 @@ import { match } from 'ts-pattern';
 
 /** A chance de um quadrado conter uma bomba */
 export const BOMBS_PROBABILITY = 0.15;
-export const boardSize = { x: 16, y: 16 } as const;
+export const boardSize = { x: 8, y: 8 } as const;
 
 export enum SquareState {
   Empty,
