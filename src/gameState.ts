@@ -53,7 +53,48 @@ const gameReducer = (state: Game, action: GameAction): Game =>
 
       const row: GameBoardRow = state.board.get(y)!;
       const square = row.get(x)!;
-      if (!square.hasFlag) {
+
+      if (square.isVisible && square.state === SquareState.Empty) {
+        const coordsAround = findCoordsAround({ x, y }, state.boardSize);
+        const minesAround = coordsAround
+          .map((coords) => state.board.get(coords.y)!.get(coords.x)!)
+          .filter((coordsSquare) => coordsSquare.state === SquareState.Mine);
+        const minesAroundHaveFlag = minesAround.every((mine) => mine.hasFlag);
+
+        if (minesAround.length === 0 || minesAroundHaveFlag) {
+          const newBoard = coordsAround
+            .filter((coords) => {
+              const coordsSquare = state.board.get(coords.y)!.get(coords.x)!;
+              const isEmpty = coordsSquare.state === SquareState.Empty;
+              return isEmpty && !coordsSquare.isVisible;
+            })
+            .reduce((board, coords) => {
+              const coordsRow = board.get(coords.y)!;
+              const coordsSquare = coordsRow.get(coords.x)!;
+              const newSquare: BoardSquareT = {
+                ...coordsSquare,
+                isVisible: true,
+              };
+
+              return board.set(coords.y, coordsRow.set(coords.x, newSquare));
+            }, state.board);
+
+          if (didPlayerWin(newBoard)) {
+            return {
+              ...state,
+              gameState: GameState.PlayerWon,
+              board: newBoard,
+            };
+          } else {
+            return {
+              ...state,
+              board: newBoard,
+            };
+          }
+        } else {
+          return state;
+        }
+      } else if (!square.hasFlag) {
         const newSquare = { ...square, isVisible: true };
         const newBoard = state.board.set(y, row.set(x, newSquare));
 
@@ -177,8 +218,13 @@ export function areCoordsInBoundaries(coords: Vector2, boardSize: Vector2) {
 export function countMinesAround(position: Vector2, board: GameBoard): number {
   return findCoordsAround(position, getBoardSize(board))
     .map((coords) => board.get(coords.y)!.get(coords.x)!)
-    .map((square) => (square.state === SquareState.Mine ? 1 : 0))
-    .reduce((acc: number, num) => acc + num, 0);
+    .reduce((acc: number, square) => {
+      if (square.state === SquareState.Mine) {
+        return acc + 1;
+      } else {
+        return acc;
+      }
+    }, 0);
 }
 
 export function didPlayerWin(board: GameBoard): boolean {
