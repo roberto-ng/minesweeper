@@ -9,7 +9,7 @@ import {
 } from './gameState';
 import { match, P } from 'ts-pattern';
 import cx from 'classnames';
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 
 type Props = {
   pos: Vector2;
@@ -26,32 +26,24 @@ export function BoardSquare({
   onRightClick,
   onClick,
 }: Props) {
-  const squareRef = useRef<HTMLDivElement>(null);
   const iconColor = !square.isVisible ? 'white' : '#a3e635';
-
-  useEffect(() => {
-    const handleRightClick = (e: Event) => {
-      e.preventDefault();
-
-      if (onRightClick != null) {
-        onRightClick();
-      }
-    };
-
-    squareRef.current?.addEventListener('contextmenu', handleRightClick);
-    return () => {
-      squareRef.current?.removeEventListener('contextmenu', handleRightClick);
-    };
-  }, []);
 
   const minesAround = useMemo(() => {
     return square.isVisible ? countMinesAround(pos, board) : null;
   }, [square.isVisible]);
 
+  const handleRightClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (onRightClick != null) {
+      onRightClick();
+    }
+  };
+
   return (
     <div
-      ref={squareRef}
       onClick={onClick}
+      onContextMenu={handleRightClick}
       className={cx(
         'w-8',
         'h-8',
